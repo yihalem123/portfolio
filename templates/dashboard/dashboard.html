@@ -792,19 +792,20 @@
                                                 <table class="table table-centered table-nowrap mb-0">
                                                     <thead class="thead-light">
                                                         <tr>
-                                                            <th>Company Name</th>
-                                                            <th>Last Trading Price (LTP)</th>
-                                                            <th>Entry</th>
+                                                            <th>Stock 1</th>
+                                                            <th>Stock 2</th>
+                                                            <th>Stock 3</th>
                                                             <th>Target</th>
                                                             <th>Holding Period</th>
                                                             <th>Details</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
+                                                        {% for item in recommendation  %}
                                                         <tr>
-                                                            <td class="text-body font-weight-bold">Bank First Corp. (BFC)</td>
-                                                            <td>$ 72.28</td>
-                                                            <td>$ 75.00</td>
+                                                            <td class="text-body font-weight-bold">{{item.stock_1}}</td>
+                                                            <td class="text-body font-weight-bold" >{{item.stock_2}}</td>
+                                                            <td class="text-body font-weight-bold" >{{item.stock_3}}</td>
                                                             <td>$ 98.50</td>
                                                             <td>~ 1 year</td>
                                                             <td>
@@ -814,32 +815,7 @@
                                                                 </button>
                                                             </td>
                                                         </tr>
-                                                        <tr>
-                                                            <td class="text-body font-weight-bold">ACNB Corp. (ACNB)</td>
-                                                            <td>$ 29.13</td>
-                                                            <td>$ 30.50</td>
-                                                            <td>$ 40.30</td>
-                                                            <td>~ 1.5 years</td>
-                                                            <td>
-                                                                <!-- Button trigger modal -->
-                                                                <button type="button" class="btn btn-primary btn-sm btn-rounded waves-effect waves-light">
-                                                                    View Details
-                                                                </button>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="text-body font-weight-bold">Axos Financials INC. (AX)</td>
-                                                            <td>$ 48.53</td>
-                                                            <td>$ 50.20</td>
-                                                            <td>$ 62.75</td>
-                                                            <td>~ 2 years</td>
-                                                            <td>
-                                                                <!-- Button trigger modal -->
-                                                                <button type="button" class="btn btn-primary btn-sm btn-rounded waves-effect waves-light">
-                                                                    View Details
-                                                                </button>
-                                                            </td>
-                                                        </tr>
+                                                        {% endfor %}
                                                     </tbody>
                                                 </table>
                                             </div>

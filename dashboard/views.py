@@ -103,7 +103,7 @@ def dashboard(request):
                         
             )
 
-        sorted_results = results_df.head(1)
+        sorted_results = results_df.head(3)
         sorted_results_dict = sorted_results.to_dict(orient='records')
         print(sorted_results_dict)
         # Adding
