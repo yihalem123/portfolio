@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+import dj_database_url
 
 # Reference: https://dev.to/vladyslavnua/how-to-protect-your-django-secret-and-oauth-keys-53fl 
 # For handling the environment variables from .env file
@@ -26,9 +27,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = str(os.getenv('SECRET_KEY'))
+#SECRET_KEY = "fdnbjdbcjbhcbhbjdcbjhdbcbhdbjcbjbc"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
 ALLOWED_HOSTS = []
 
@@ -48,7 +50,9 @@ INSTALLED_APPS = [
     'home',
     'dashboard',
     'riskprofile',
-    'recommendation',
+    #'recommendation',
+    #'prediction',
+    #'rest_framework',
 
     # Third Party - 1) All Auth
     'allauth',
@@ -67,7 +71,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'allauth.account.middleware.AccountMiddleware',
+
 ]
 
 ROOT_URLCONF = 'portfolio_management_system.urls'
@@ -103,6 +107,8 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
+DATABASES["default"] = dj_database_url.parse("postgres://django_db_yq4n_user:iva5utyd5whyULEQzKlZRuDtYpAQWo5k@dpg-cpo1to2j1k6c73fjiu30-a.oregon-postgres.render.com/django_db_yq4n")
+#postgres://django_db_yq4n_user:iva5utyd5whyULEQzKlZRuDtYpAQWo5k@dpg-cpo1to2j1k6c73fjiu30-a.oregon-postgres.render.com/django_db_yq4n
 
 
 AUTHENTICATION_BACKENDS = [
@@ -171,8 +177,8 @@ SOCIALACCOUNT_PROVIDERS = {
     },
     'google': {
         'APP': {
-            'client_id': str(os.getenv('GOOGLE_CLIENT_ID')),
-            'secret': str(os.getenv('GOOGLE_SECRET_KEY')),
+            'client_id': '351468105581-p8kdjg0p0pj3ckhoai7ji5pcnb976ff5.apps.googleusercontent.com',
+            'secret': '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',
             'key': ''
         }
     },

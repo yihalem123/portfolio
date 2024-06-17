@@ -18,8 +18,12 @@
         <link href="{% static 'dashboard/css/icons.min.css' %}" rel="stylesheet" type="text/css" />
         <!-- App Css-->
         <link href="{% static 'dashboard/css/app.min.css' %}" id="app-style" rel="stylesheet" type="text/css" />
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.min.js"></script>
         <script src="https://www.chartjs.org/dist/2.9.4/Chart.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
         <style>
             .tabcontent {
@@ -36,6 +40,104 @@
                 from {opacity: 0;}
                 to {opacity: 1;}
             }
+         
+        /* Spinner CSS */
+        @keyframes sk-rotateplane {
+            0% { transform: perspective(120px) rotateX(0deg) rotateY(0deg); }
+            50% { transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg); }
+            100% { transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg); }
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            background-color: #1971e4;
+            margin: 100px auto;
+            animation: sk-rotateplane 1.2s infinite ease-in-out;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .card-title {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+        .card-body {
+            padding: 1.5rem;
+        }
+        .card-body p {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+        .card-body a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .card-body a:hover {
+            text-decoration: underline;
+        }
+        .page-title-box {
+            padding: 10px 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .breadcrumb {
+            background-color: transparent;
+            font-size: 0.9rem;
+            padding: 0;
+            margin-bottom: 0;
+        }
+        .breadcrumb-item {
+            padding: 0;
+        }
+        .breadcrumb-item + .breadcrumb-item::before {
+            content: "\00a0/\00a0";
+        }
+        .loader-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.7);
+            display: none;
+            z-index: 9999;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin: -15px 0 0 -15px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Media query for responsiveness */
+        @media (max-width: 768px) {
+            .card {
+                margin-bottom: 15px;
+            }
+            .card-body {
+                padding: 1rem;
+            }
+        }
+            .table {
+            width: 100%;
+            margin-bottom: 0; /* Remove default margin-bottom */
+        }
+
+        .table th, .table td {
+            vertical-align: middle; /* Align content vertically */
+        }
         </style>
 
     </head>
@@ -233,8 +335,8 @@
                                     </li>
 
                                     <li class="nav-item">
-                                        <a class="nav-link" onclick="openTab(event, 'backtesting')">
-                                            <i class="uil-cog mr-2"></i> Backtesting
+                                        <a class="nav-link" onclick="openTab(event, 'prediction')">
+                                            <i class="uil-cog mr-2"></i> Stock Prediction
                                         </a>
                                     </li>
      
@@ -421,7 +523,9 @@
                                                                 <div class="form-group row mb-4">
                                                                     <label for="horizontal-firstname-input" class="col-sm-3 col-form-label">Stock Ticker :</label>
                                                                     <div class="col-sm-9">
-                                                                        <select name="company" class="form-control select2 select2-hidden-accessible" id="company" data-select2-id="1" tabindex="-1" aria-hidden="true"></select>
+                                                                        <select id="company" class="js-example-basic-single" style="width: 100%;">
+                                                                            <!-- Options will be dynamically loaded here -->
+                                                                          </select>
                                                                     </div>
                                                                 </div>
                                                                 <div class="form-group row mb-4">
@@ -587,16 +691,15 @@
             </div>
 
             <!-- Portfolio Insights -->
-            <div id="portfolio-insights" class="tabcontent">
+            <div id="portfolio-insights" class="container-fluid tabcontent">
                 <div class="main-content">
                     <div class="page-content">
-                        <div class="container-fluid">
+                        <div class="container">
                             <!-- start page title -->
                             <div class="row">
                                 <div class="col-12">
                                     <div class="page-title-box d-flex align-items-center justify-content-between">
                                         <h4 class="mb-0">Dashboard</h4>
-
                                         <div class="page-title-right">
                                             <ol class="breadcrumb m-0">
                                                 <li class="breadcrumb-item"><a href="javascript: void(0);">Home</a></li>
@@ -604,14 +707,30 @@
                                                 <li class="breadcrumb-item active">Portfolio Insights</li>
                                             </ol>
                                         </div>
-
                                     </div>
                                 </div>
                             </div>
                             <!-- end page title -->
+        
+                            <!-- User Status Section -->
+                            <div class="row justify-content-center mb-4">
+                                <div class="col-lg-8">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h5 class="card-title">User Status</h5>
+                                            <ul class="list-unstyled">
+                                                <li><strong>Risk Profile:</strong> <span id="user-risk-profile">Loading...</span></li>
+                                                <li><strong>Current Stock Holdings:</strong> <span id="current-stock-holdings"></span></li>
 
-                            <div class="row">
-                                <div class="col-md-6 col-sm-12">
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Portfolio Metrics Section -->
+                            <div class="row justify-content-center">
+                                <div class="col-lg-6">
                                     <div class="card">
                                         <div class="card-body">
                                             <div class="float-right mt-2">
@@ -624,8 +743,9 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div> <!-- end col-->
-                                <div class="col-md-6 col-sm-12">
+                                </div>
+        
+                                <div class="col-lg-6">
                                     <div class="card">
                                         <div class="card-body">
                                             <div class="float-right mt-2">
@@ -638,37 +758,71 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div> <!-- end col-->
-                                <div class="col-md-6 col-sm-12">
+                                </div>
+        
+ 
+                            </div>
+                            <!-- End Portfolio Metrics Section -->
+        
+                            <!-- Optimization Button Section -->
+                            <div class="row justify-content-center">
+                                <div class="col-lg-6">
                                     <div class="card">
-                                        <div class="card-body">
-                                            <div class="float-right mt-2">
-                                                <div id="total-investment-chart"></div>
-                                            </div>
-                                            <div>
-                                                <h4 class="mb-1 mt-1">Price Forecast : &nbsp;<span style="color:#34c38f;"><i class="fas fa-caret-up"></i> 1.27%</span></h4>
-                                                <p class="text-muted">According to analyst forecasts, your portfolio is estimated to grow by 1.27% by next year</p>
-                                                <p class="mb-0"><a href="#" style="padding-top: 20px;">See Forecast Report &nbsp;<i class="fas fa-long-arrow-alt-right"></i></a></p>
-                                            </div>
+                                        <div class="card-body text-center">
+                                            <button id="optimizeButton" class="btn btn-primary">Optimize Portfolio</button>
+                                            <div id="optimizationResult" class="mt-3"></div>
                                         </div>
                                     </div>
-                                </div> <!-- end col-->
-                                <div class="col-md-6 col-sm-12">
-                                    <div class="card">
-                                        <div class="card-body">
-                                            <div class="float-right mt-2">
-                                                <div id="total-investment-chart"></div>
-                                            </div>
-                                            <div>
-                                                <h4 class="mb-1 mt-1">Redflags : <span style="color:#f46a6a;">0 &nbsp;<i class="fas fa-flag"></i></span></h4>
-                                                <p class="text-muted">We spotted possible redflags with 0 of the securities in your portfolio</p>
-                                                <p class="mb-0"><a href="#" style="padding-top: 20px;">See Redflags &nbsp;<i class="fas fa-long-arrow-alt-right"></i></a></p>
+                                </div>
+                            </div>
+                            <!-- End Optimization Button Section -->
+        
+                            <!-- Optimization Results Section -->
+                            <div class="row justify-content-center mt-4" id="optimizationResultsSection" style="display: none;">
+                                <div class="col-lg-12">
+                                    <div class="row">
+                                        <div class="col-lg-6 mb-4">
+                                            <div class="card">
+                                                <div class="card-body">
+                                                    <h5 class="card-title">Optimization Result</h5>
+                                                    <div id="OptimizationChart"></div>
+                                                </div>
                                             </div>
                                         </div>
+                                        <div class="col-lg-6 mb-4">
+                                            <div class="card">
+                                                <div class="card-body">
+                                                    <h5 class="card-title">Optimization Performance</h5>
+                                                    <div id="optimizationPerformance"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                     </div>
-                                </div> <!-- end col-->
+                                </div>
                             </div>
 
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Optimized Allocation</h5>
+                                    <div id="optimizedAllocation">
+                                        <table class="table table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>Symbol</th>
+                                                    <th>Action</th>
+                                                    <th>Update to Portfolio</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="allocationTableBody">
+                                                <!-- Dynamically generated table rows will go here -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- End Optimization Results Section -->
+        
                             <footer class="footer">
                                 <div class="container-fluid">
                                     <div class="row">
@@ -687,7 +841,145 @@
                     </div>
                 </div>
             </div>
+                    
+                        <!-- Include Bootstrap JS and Font Awesome JS -->
+                        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+                        <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
+                    <script>
+                        function updateOptimizedAllocation(data) {
+                            const allocationTableBody = document.getElementById('allocationTableBody');
+                            
+                            // Clear previous content if any
+                            allocationTableBody.innerHTML = '';
+                            
+                            // Iterate over each stock allocation and create a table row
+                            Object.keys(data).forEach(symbol => {
+                                const allocation = data[symbol];
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${symbol}</td>
+                                    <td>${allocation}</td>
+                                    <td><button class="btn btn-primary add-to-portfolio" data-symbol="${symbol}">Update</button></td>
+                                `;
+                                allocationTableBody.appendChild(row);
+                            });
+                            
+                            // Attach event listeners to Add to Portfolio buttons
+                            document.querySelectorAll('.add-to-portfolio').forEach(button => {
+                                button.addEventListener('click', addToPortfolio);
+                            });
+                        }
 
+                        function addToPortfolio(event) {
+                            const symbol = event.target.dataset.symbol;
+                            // Perform action to add 'symbol' to user's portfolio (replace with your logic)
+                            console.log(`Adding ${symbol} to portfolio`);
+    // Example: alert(`Adding ${symbol} to portfolio`);
+}
+                        // Fetch portfolio insights on page load
+                        document.addEventListener('DOMContentLoaded', getPortfolioInsights);
+
+                        function getPortfolioInsights() {
+                            fetch("{% url 'get-portfolio-insights' %}", {
+                                method: "GET",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "X-CSRFToken": "{{ csrf_token }}"
+                                }
+                            })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('Network response was not ok');
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                // Update User Status
+                                document.getElementById('user-risk-profile').innerText = data.RiskProfile || 'N/A';
+                                document.getElementById('current-stock-holdings').innerText = data.CurrentStockHoldings || 'N/A';
+
+                                // Update Portfolio Metrics
+                                document.getElementById('portfolio-beta').innerText = data.PortfolioBeta || 'N/A';
+                                document.getElementById('portfolio-beta-text').innerText = `Your portfolio moves by a factor of ${data.PortfolioBeta} in the direction of market swing`;
+                                document.getElementById('portfolio-pe').innerText = data.PortfolioPE || 'N/A';
+                            })
+                            .catch(error => {
+                                console.error('Error fetching portfolio insights:', error);
+                                alert('Failed to fetch portfolio insights. Please try again later.');
+                            });
+                        }
+
+                        document.getElementById('optimizeButton').addEventListener('click', optimizePortfolio);
+
+                        function optimizePortfolio() {
+                            fetch("{% url 'optimize_portfolio' %}", {
+                                method: "GET",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "X-CSRFToken": "{{ csrf_token }}"
+                                }
+                            })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('Network response was not ok');
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                updateOptimizationResults(data);
+
+// Hide loader animation
+
+                            })
+                            .catch(error => {
+                                console.error('Error optimizing portfolio:', error);
+                                //alert('Failed to optimize portfolio. Please try again later.');
+                            });
+                        }
+
+                        function updateOptimizationResults(data) {
+            // Update Optimization Results Section
+                                document.getElementById('loader1').style.display = 'none';
+                                // Update Optimization Results Section
+                                updateOptimizedAllocation(data.allocations);
+                                document.getElementById('optimizationResultsSection').style.display = 'block';
+                                renderWeightChart(data.weights);
+
+                                document.getElementById('optimizationPerformance').innerHTML = `
+                                    <h6>Optimized Weights</h6>
+                                    <pre>${JSON.stringify(data.performance["MVO"], null, 2)}</pre>
+                                `;
+                                
+                    
+        }
+
+        function renderWeightChart(weights) {
+            // Generate labels and series for the chart
+            const labels = Object.keys(weights);
+            const series = Object.values(weights);
+
+            // Generate the chart using ApexCharts
+            new ApexCharts(document.querySelector("#OptimizationChart"), {
+                series: series,
+                chart: {
+                    type: 'donut',
+                    height: 350,
+                },
+                labels: labels,
+                responsive: [{
+                    breakpoint: 480,
+                    options: {
+                        chart: {
+                            width: 200
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }]
+            }).render();
+        }
+                    </script>
             <!-- Recommendations -->
             <div id="recommendations" class="tabcontent">
                 <div class="main-content">
@@ -979,53 +1271,225 @@
             </div>
 
             <!-- Backtesting -->
-            <div id="backtesting" class="tabcontent">
+            <div id="prediction" class="tabcontent">
                 <div class="main-content">
                     <div class="page-content">
                         <div class="container-fluid">
-                            <!-- start page title -->
+                            <!-- Start page title -->
                             <div class="row">
                                 <div class="col-12">
                                     <div class="page-title-box d-flex align-items-center justify-content-between">
-                                        <h4 class="mb-0">Dashboard</h4>
-
+                                        <h4 class="mb-0">Stock Price Prediction</h4>
                                         <div class="page-title-right">
                                             <ol class="breadcrumb m-0">
-                                                <li class="breadcrumb-item"><a href="javascript: void(0);">Home</a></li>
+                                                <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
                                                 <li class="breadcrumb-item">Dashboard</li>
-                                                <li class="breadcrumb-item active">Backtesting</li>
+                                                <li class="breadcrumb-item active">Prediction</li>
                                             </ol>
                                         </div>
-
                                     </div>
                                 </div>
                             </div>
-                            <!-- end page title -->
-
-                            <button class="btn btn-primary" onclick="openBacktestingEngine()">Open Backtesting Engine</button>
-
-                            <footer class="footer">
-                                <div class="container-fluid">
-                                    <div class="row">
-                                        <div class="col-sm-6">
-                                            <script>document.write(new Date().getFullYear())</script> © All Rights Reserved
+                            <!-- End page title -->
+            
+                            <!-- Prediction form -->
+                            <div class="row mt-3">
+                                <div class="col-lg-6">
+                                    <div class="form-group">
+                                        <label for="stock-symbol">Stock Symbol</label>
+                                        <input type="text" class="form-control" id="stock-symbol" placeholder="Enter Stock Symbol">
+                                        
+                                    </div>
+                                </div>
+                                <div class="col-lg-3">
+                                    <div class="form-group">
+                                        <label for="prediction-period">Prediction Period (Days)</label>
+                                        <input type="number" class="form-control" id="prediction-period" value="7">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-3">
+                                <div class="form-group">
+                                    <button class="btn btn-primary btn-block" onclick="predictStockPrice()">Predict</button>
+                                </div>
+                            </div>
+                            <div id="loader" style="display:none;">
+                                <div class="spinner"></div>
+                            </div>
+                            <!-- Prediction result chart -->
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <!-- Market Chart -->
+                                    <canvas id="marketChart" width="400" height="200"></canvas>
+                                </div>
+                                <div class="col-md-4">
+                                    <!-- Current Market Status -->
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h5 class="card-title">Current Market Status</h5>
+                                            <p class="card-text" id="open-price"></p>
+                                            <p class="card-text" id="close-price"></p>
+                                            <p class="card-text" id="high-price"></p>
+                                            <p class="card-text" id="low-price"></p>
                                         </div>
-                                        <div class="col-sm-6">
-                                            <div class="text-sm-right d-none d-sm-block">
-                                                Crafted with <i class="fas fa-heart"></i>
-                                            </div>
+                                    </div>
+                                    <!-- Predicted Market Status -->
+                                    <div class="card mt-3">
+                                        <div class="card-body">
+                                            <h5 class="card-title">Tomorrows Predicted Market price</h5>
+                                            <p class="card-text" id="predicted-price">Predicted Price: $XXX.XX</p>
+                                            <p class="card-text" id="lstm-price">LSTM Predicted Price: $XXX.XX</p>
+                                            <p class="card-text" id="arima-price">ARIMA Predicted Price: $XXX.XX</p>
                                         </div>
                                     </div>
                                 </div>
-                            </footer>
-                        </div>
-                    </div>
-                </div>
+                            </div>
+                        </div> <!-- end container-fluid -->
+                    </div> <!-- end page-content -->
+                </div> <!-- end main-content -->
             </div>
 
-        </div>
+         
+
+
+            <script>
+            function predictStockPrice() {
+                var stockSymbol = document.getElementById("stock-symbol").value;
+                var predictionPeriod = document.getElementById("prediction-period").value
+                // Make AJAX request to predict endpoint
+                
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "/predict", true);
+                xhr.setRequestHeader("Content-Type", "application/json");
+                xhr.setRequestHeader("X-CSRFToken", getCSRFToken());  // Ensure CSRF token is included
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === 4 && xhr.status === 200) {
+                        var response = JSON.parse(xhr.responseText);
+                        $('#loader').hide();
+                        // Extract actual closing prices and dates
+                        var actualData = response.actual_data.map(price => parseFloat(price).toFixed(2));
+                        var actualDates = response.actual_dates;
+
+                        // Extract forecasted prices and dates
+                        var predictedData = response.forecast_set.map(price => parseFloat(price).toFixed(2));
+                        var forecastDates = response.forecast_dates;
+
+                        // Combine actual dates and forecast dates
+                        var allDates = actualDates.concat(forecastDates);
+
+                        // Fill the gap by setting the last actual price as the first predicted one
+                        predictedData[0] = actualData[actualData.length - 1];
+
+                        // Combine actual data and predicted data
+                        var fullActualData = actualData.concat(new Array(predictedData.length - 1).fill(null));
+                        var fullPredictedData = new Array(actualData.length - 1).fill(null).concat(predictedData);
+
+                        // Display current market status
+                        var openPrice = parseFloat(response.today_stock[0].Open).toFixed(2);
+                        var closePrice = parseFloat(response.today_stock[0].Close).toFixed(2);
+                        var highPrice = parseFloat(response.today_stock[0].High).toFixed(2);
+                        var lowPrice = parseFloat(response.today_stock[0].Low).toFixed(2);
+                        var predictedPrice = parseFloat(response.prediction).toFixed(2);
+                        var arimaPrediction = response.arima_pred
+                        var lstmPrediction = response.lstm_pred
+
+
+                        document.getElementById("open-price").textContent = "Open: $" + openPrice;
+                        document.getElementById("close-price").textContent = "Close: $" + closePrice;
+                        document.getElementById("high-price").textContent = "High: $" + highPrice;
+                        document.getElementById("low-price").textContent = "Low: $" + lowPrice;
+                        document.getElementById("predicted-price").textContent = "Predicted Price: $" + predictedPrice;
+                        document.getElementById("arima-price").textContent = "ARIMA Predicted Price: $" + arimaPrediction;
+                        document.getElementById("lstm-price").textContent = "LSTM Predicted Price: $" + lstmPrediction;
+
+
+                        // Update the market chart
+                        updateMarketChart(allDates, fullActualData, fullPredictedData);
+                    }
+                };
+                var data = JSON.stringify({ "ticker": stockSymbol , "predictionperiod": parseInt(predictionPeriod) });
+                xhr.send(data);
+                $('#loader').show();
+            }
+
+            function updateMarketChart(dates, actualData, predictedData) {
+                var ctx = document.getElementById('marketChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: dates,
+                        datasets: [{
+                            label: 'Actual Price',
+                            data: actualData,
+                            borderColor: 'blue',
+                            backgroundColor: 'rgba(0, 0, 255, 0.1)',
+                            tension: 0.4
+                        }, {
+                            label: 'Predicted Price',
+                            data: predictedData,
+                            borderColor: 'green',
+                            backgroundColor: 'rgba(0, 255, 0, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            x: {
+                                type: 'time',
+                                time: {
+                                    unit: 'day'
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Date'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Price (USD)'
+                                },
+                                beginAtZero: false
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Helper function to get CSRF token from cookies
+            function getCSRFToken() {
+                let cookieValue = null;
+                const name = 'csrftoken';
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        // Does this cookie string begin with the name we want?
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+</script>
+            
         <!-- END layout-wrapper -->
 
+   
+ 
         <!-- JAVASCRIPT -->
         <script src="{% static 'dashboard/libs/jquery/jquery.min.js' %}"></script>
         <script src="{% static 'dashboard/libs/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
@@ -1210,12 +1674,14 @@
         <!-- Script for submitting the form with AJAX -->
         <script>
             function addStockHoldingResult(data) {
-                if (data === "Success") {
+                
+                if (data.status === "Success") {
                     $('#myModal').modal('toggle');
                     alert("Stock Holding successfully added to your portfolio");
                     location.reload();
+                    console.log(data.status)
                 } else {
-                    alert("Error adding the stock holding\n"); // + "Message: " + data);
+                    alert("Error adding the stock holding\n" ); // Display the actual response data
                 }
             }
 
@@ -1223,37 +1689,56 @@
                 e.preventDefault(); // avoid to execute the actual submit of the form.
                 var form = $(this);
                 var url = form.attr('action');
+                var company = $('#company').val(); // Get the selected company value
+                // Append the company value to the form data
+                var formData = form.serializeArray();
+                formData.push({ name: 'company', value: company });
                 $.ajax({
                     type: "POST",
                     url: url,
-                    data: form.serialize(),
+                    data: formData, // Use the updated form data
                     success: function(data) { addStockHoldingResult(data) }
                 });
             });
         </script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+
 
         <!-- Script for getting the list of companies for showing it in the add new holding dropdown -->
         <!-- This will be called only once -->
         <script>
-            function processData(data) {
-                var datalist = document.getElementById("company");
-                for (var i = 0; i < data.length; i++) {
-                    var option = document.createElement("option");
-                    option.innerHTML = data[i][1] + " &nbsp;(" + data[i][0] + ")";
-                    datalist.append(option);
-                }
-            }
-
             $(document).ready(function() {
-               $.ajax({
-                    type: "GET",
-                    url: "/company-list",
-                    dataType: "json",
-                    success: function(data) { processData(data["data"]); }
+                $('#company').select2({
+                    ajax: {
+                        url: '/company-list',
+                        dataType: 'json',
+                        delay: 250,
+                        data: function(params) {
+                            return {
+                                q: params.term // Send user input as 'q' parameter
+                            };
+                        },
+                        processResults: function(data) {
+                            return {
+                                results: $.map(data.data, function(item) {
+                                    return {
+                                        id: item.id,
+                                        text: item.text
+                                    };
+                                })
+                            };
+                        },
+                        cache: true
+                    },
+                    minimumInputLength: 1
+                }).on('select2:select', function (e) {
+                    var data = e.params.data;
+                    var ticker = data.id; // Extract the ticker from selected data
+                    $('#company').val(ticker); // Set the selected ticker as the input value
                 });
             });
         </script>
-
         <!-- Script for getting the date value -->
         <script>
             function getDate() {
